@@ -1,0 +1,737 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hike with Jyothi Prakash</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f3ee;color:#1a1a1a;overflow:hidden}
+
+/* HEADER */
+#header{background:#1a2e1a;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex-shrink:0}
+#header h1{font-size:17px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;white-space:nowrap}
+#header-stats{display:flex;gap:16px;margin-left:auto;align-items:center}
+.hstat{text-align:center}
+.hstat-val{font-size:18px;font-weight:700;color:#8dbc7a;line-height:1}
+.hstat-lbl{font-size:9px;color:#6b9960;text-transform:uppercase;letter-spacing:.06em}
+#yt-channel-btn{display:flex;align-items:center;gap:7px;background:#ff0000;color:#fff;text-decoration:none;font-size:12px;font-weight:600;padding:7px 13px;border-radius:8px;white-space:nowrap;flex-shrink:0}
+#yt-channel-btn:hover{background:#cc0000}
+#yt-channel-btn svg{width:16px;height:16px;fill:#fff;flex-shrink:0}
+
+/* TOOLBAR */
+#toolbar{background:#fff;border-bottom:1px solid #e0dcd4;padding:8px 16px;display:flex;gap:7px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+#toolbar select{font-size:12px;padding:5px 10px;border:1px solid #d0ccc4;border-radius:7px;background:#fff;color:#333;height:30px;cursor:pointer}
+.filter-toggle{font-size:12px;padding:0 11px;border:1px solid #d0ccc4;border-radius:7px;background:#fff;color:#555;height:30px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.filter-toggle.active{background:#fff0f0;border-color:#ff0000;color:#cc0000;font-weight:600}
+#search-box{font-size:12px;padding:5px 10px;border:1px solid #d0ccc4;border-radius:7px;height:30px;width:170px;color:#333}
+#filter-count{font-size:11px;color:#aaa;margin-left:auto;white-space:nowrap}
+
+/* LAYOUT */
+#main{display:flex;height:calc(100vh - 97px);overflow:hidden}
+
+/* LIST PANEL */
+#list-panel{width:360px;min-width:300px;background:#fff;border-right:1px solid #e0dcd4;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+#list-header{padding:8px 14px;border-bottom:1px solid #f0ece4;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#list-header span{font-size:11px;color:#aaa}
+#sort-bar{display:flex;gap:4px}
+.sort-btn{font-size:10px;padding:2px 7px;border:1px solid #e0dcd4;border-radius:5px;background:#fff;cursor:pointer;color:#666}
+.sort-btn.active{background:#1a2e1a;color:#fff;border-color:#1a2e1a}
+#hike-list{overflow-y:auto;flex:1}
+.hike-row{padding:9px 14px;border-bottom:1px solid #f5f2ec;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:background .1s}
+.hike-row:hover{background:#f9f7f3}
+.hike-row.active{background:#eef5eb;border-left:3px solid #52ae32;padding-left:11px}
+.hike-row.active .hr-name{color:#2a6e1a}
+.hr-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.hr-body{flex:1;min-width:0}
+.hr-name{font-size:13px;font-weight:500;color:#111;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hr-meta{font-size:11px;color:#999;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.hr-links{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.hr-at{font-size:10px;padding:2px 7px;background:#edf7e8;color:#2a6e1a;border-radius:5px;text-decoration:none;font-weight:500}
+.hr-at:hover{background:#d4edda}
+.hr-yt{font-size:10px;padding:2px 7px;background:#fff0f0;color:#cc0000;border-radius:5px;text-decoration:none;font-weight:500}
+.hr-yt:hover{background:#ffd5d5}
+.diff-pill{font-size:9px;font-weight:600;padding:1px 6px;border-radius:10px}
+.diff-easy{background:#d4edda;color:#1a5c2a}
+.diff-moderate{background:#fff3cd;color:#7a5100}
+.diff-hard{background:#ffe0cc;color:#8b2e00}
+.diff-epic{background:#f0d0ff;color:#5c0077}
+.new-pill{font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:#dbeafe;color:#1e40af}
+.vlog-pill{font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:#fff0f0;color:#cc0000}
+
+/* MAP PANEL */
+#map-panel{flex:1;position:relative;overflow:hidden}
+#hike-map{width:100%;height:100%}
+#hover-card{position:absolute;bottom:16px;left:16px;width:228px;background:#fff;border:1px solid #ddd;border-radius:12px;overflow:hidden;z-index:900;display:none;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,0.14)}
+#hc-img{width:100%;height:118px;object-fit:cover;display:block;background:#c8dfc8}
+#hc-body{padding:9px 12px 11px}
+#hc-name{font-size:12px;font-weight:600;color:#111;line-height:1.3;margin-bottom:2px}
+#hc-loc{font-size:10px;color:#888;margin-bottom:5px}
+#hc-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+#legend{position:absolute;bottom:16px;right:16px;background:rgba(255,255,255,0.95);border:1px solid #e0dcd4;border-radius:10px;padding:8px 12px;z-index:800;font-size:10px;color:#555}
+.leg{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.leg:last-child{margin-bottom:0}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* DRAWER OVERLAY */
+#drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:1000;display:none;justify-content:flex-end}
+#drawer-overlay.open{display:flex}
+#drawer{width:420px;max-width:95vw;background:#fff;height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.15);transform:translateX(100%);transition:transform .25s ease}
+#drawer-overlay.open #drawer{transform:translateX(0)}
+
+#drawer-header{padding:16px 18px 12px;border-bottom:1px solid #f0ece4;flex-shrink:0}
+#drawer-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:#999;line-height:1}
+#drawer-close:hover{color:#333}
+#drawer-hike-name{font-size:16px;font-weight:600;color:#111;line-height:1.3;margin-bottom:3px;padding-right:28px}
+#drawer-hike-loc{font-size:12px;color:#888;margin-bottom:8px}
+#drawer-hike-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.elev-bar-wrap{background:#eee;border-radius:4px;height:4px;overflow:hidden;margin-bottom:8px}
+.elev-bar-fill{height:100%;border-radius:4px;background:#52ae32}
+#drawer-hike-stats{display:flex;gap:14px;margin-bottom:10px}
+.drawer-stat{font-size:12px;color:#555}
+#drawer-btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.at-btn{display:inline-flex;align-items:center;gap:5px;background:#52ae32;color:#fff;font-size:12px;padding:6px 12px;border-radius:7px;text-decoration:none;font-weight:600}
+.at-btn:hover{background:#3d8f24}
+.yt-watch-btn{display:inline-flex;align-items:center;gap:5px;background:#ff0000;color:#fff;font-size:12px;padding:6px 12px;border-radius:7px;text-decoration:none;font-weight:600}
+.yt-watch-btn:hover{background:#cc0000}
+.yt-comment-btn{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#cc0000;font-size:12px;padding:6px 12px;border-radius:7px;text-decoration:none;font-weight:600;border:1.5px solid #ffcccc}
+.yt-comment-btn:hover{background:#fff0f0}
+
+/* COMMENTS SECTION */
+#drawer-body{flex:1;overflow-y:auto;padding:0}
+#comments-section{padding:16px 18px}
+#comments-section h3{font-size:13px;font-weight:600;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+#comments-list{margin-bottom:16px}
+.comment-item{padding:10px 12px;background:#f9f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #f0ece4}
+.comment-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.comment-author{font-size:12px;font-weight:600;color:#333}
+.comment-time{font-size:10px;color:#bbb}
+.comment-msg{font-size:13px;color:#444;line-height:1.5}
+.comment-like{display:flex;align-items:center;gap:4px;margin-top:6px}
+.like-btn{background:none;border:1px solid #e0dcd4;border-radius:20px;padding:2px 9px;font-size:11px;cursor:pointer;color:#666;display:flex;align-items:center;gap:4px;transition:all .15s}
+.like-btn:hover{background:#fff3e0;border-color:#f59e0b;color:#92400e}
+.like-btn.liked{background:#fff3e0;border-color:#f59e0b;color:#92400e;font-weight:600}
+#no-comments{font-size:13px;color:#bbb;text-align:center;padding:20px 0;display:none}
+#comments-loading{font-size:12px;color:#bbb;text-align:center;padding:16px 0}
+
+/* COMMENT FORM */
+#comment-form{background:#f9f7f3;border-radius:10px;padding:14px;border:1px solid #f0ece4}
+#comment-form h4{font-size:12px;font-weight:600;color:#555;margin-bottom:10px}
+.form-row{display:flex;gap:8px;margin-bottom:8px}
+.form-field{flex:1;display:flex;flex-direction:column;gap:3px}
+.form-field label{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.04em}
+.form-field input,.form-field textarea{font-size:12px;border:1px solid #ddd;border-radius:6px;padding:6px 8px;font-family:inherit;color:#333;background:#fff;width:100%}
+.form-field input:focus,.form-field textarea:focus{outline:2px solid #52ae32;outline-offset:1px;border-color:#52ae32}
+.form-field textarea{resize:vertical;min-height:70px}
+#submit-comment{background:#1a2e1a;color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px;transition:background .15s}
+#submit-comment:hover{background:#2d4f2d}
+#submit-comment:disabled{background:#aaa;cursor:not-allowed}
+#form-msg{font-size:11px;margin-top:6px;text-align:center;min-height:16px}
+#form-msg.success{color:#2a6e1a}
+#form-msg.error{color:#c0392b}
+
+/* YT COMMENT PROMPT (for vlogged hikes) */
+#yt-comment-prompt{background:#fff5f5;border:1px solid #ffcccc;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:none}
+#yt-comment-prompt p{font-size:13px;color:#555;margin-bottom:10px;line-height:1.5}
+#yt-comment-prompt a{display:inline-flex;align-items:center;gap:6px;background:#ff0000;color:#fff;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;text-decoration:none}
+#yt-comment-prompt a:hover{background:#cc0000}
+
+/* POPUP (minimal, opens drawer) */
+.popup-wrap{font-family:-apple-system,sans-serif;min-width:180px}
+.popup-name{font-size:13px;font-weight:600;color:#111;margin-bottom:4px;line-height:1.3}
+.popup-loc{font-size:11px;color:#888;margin-bottom:8px}
+.popup-open-btn{background:#1a2e1a;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%}
+.popup-open-btn:hover{background:#2d4f2d}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🌿 Hike with Jyothi Prakash</h1>
+  <a id="yt-channel-btn" href="https://www.youtube.com/@hikewithjyothiprakash" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+    Watch the Vlog
+  </a>
+  <div id="header-stats">
+    <div class="hstat"><div class="hstat-val" id="hs-total">0</div><div class="hstat-lbl">Hikes</div></div>
+    <div class="hstat"><div class="hstat-val" id="hs-vlogs">0</div><div class="hstat-lbl">Vlogs</div></div>
+    <div class="hstat"><div class="hstat-val" id="hs-regions">0</div><div class="hstat-lbl">Regions</div></div>
+  </div>
+</div>
+
+<div id="toolbar">
+  <input id="search-box" type="text" placeholder="🔍  Search hikes..." oninput="applyFilters()"/>
+  <select id="f-cat" onchange="applyFilters()">
+    <option value="">All categories</option>
+    <option value="np">National Parks</option>
+    <option value="bayarea">Bay Area</option>
+    <option value="ca">California</option>
+    <option value="hawaii">Hawaii</option>
+    <option value="other">Other US</option>
+    <option value="intl">International</option>
+  </select>
+  <select id="f-diff" onchange="applyFilters()">
+    <option value="">All difficulties</option>
+    <option value="Easy">Easy</option>
+    <option value="Moderate">Moderate</option>
+    <option value="Hard">Hard</option>
+    <option value="Epic">Epic</option>
+  </select>
+  <select id="f-geo" onchange="applyFilters()">
+    <option value="">All regions</option>
+    <option value="AK">Alaska</option>
+    <option value="CA">California</option>
+    <option value="HI">Hawaii</option>
+    <option value="SW">Utah / Southwest</option>
+    <option value="WA">Washington</option>
+    <option value="MT">Montana</option>
+    <option value="WI">Wisconsin</option>
+    <option value="INTL">International</option>
+  </select>
+  <button class="filter-toggle" id="vlog-filter" onclick="toggleVlogFilter()">▶ Has vlog</button>
+  <span id="filter-count"></span>
+</div>
+
+<div id="main">
+  <div id="list-panel">
+    <div id="list-header">
+      <span id="list-count"></span>
+      <div id="sort-bar">
+        <button class="sort-btn active" onclick="setSort('name',this)">A–Z</button>
+        <button class="sort-btn" onclick="setSort('elev',this)">Elev ↓</button>
+        <button class="sort-btn" onclick="setSort('miles',this)">Miles ↓</button>
+        <button class="sort-btn" onclick="setSort('diff',this)">Diff ↓</button>
+      </div>
+    </div>
+    <div id="hike-list"></div>
+  </div>
+  <div id="map-panel">
+    <div id="hike-map"></div>
+    <div id="hover-card">
+      <img id="hc-img" src="" alt=""/>
+      <div id="hc-body">
+        <div id="hc-name"></div>
+        <div id="hc-loc"></div>
+        <div id="hc-meta"></div>
+      </div>
+    </div>
+    <div id="legend">
+      <div class="leg"><div class="leg-dot" style="background:#52ae32"></div> National Parks</div>
+      <div class="leg"><div class="leg-dot" style="background:#2e7ab5"></div> California / Bay Area</div>
+      <div class="leg"><div class="leg-dot" style="background:#e07b39"></div> Hawaii</div>
+      <div class="leg"><div class="leg-dot" style="background:#9b5de5"></div> International</div>
+      <div class="leg"><div class="leg-dot" style="background:#c0392b"></div> Other US</div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div id="drawer-overlay" onclick="closeDrawer(event)">
+  <div id="drawer">
+    <div id="drawer-header" style="position:relative">
+      <button id="drawer-close" onclick="closeDrawerDirect()">✕</button>
+      <div id="drawer-hike-name"></div>
+      <div id="drawer-hike-loc"></div>
+      <div id="drawer-hike-meta"></div>
+      <div class="elev-bar-wrap"><div class="elev-bar-fill" id="drawer-elev-bar"></div></div>
+      <div id="drawer-hike-stats"></div>
+      <div id="drawer-btn-row"></div>
+    </div>
+    <div id="drawer-body">
+      <div id="comments-section">
+        <h3>💬 Trail Comments</h3>
+        <div id="yt-comment-prompt">
+          <p>Watched the vlog? The best place to share your reaction is right on YouTube — it helps the channel grow! 🙏</p>
+          <a id="yt-comment-link" href="#" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+            Comment on YouTube
+          </a>
+        </div>
+        <div id="comments-loading">Loading comments…</div>
+        <div id="no-comments">No trail notes yet — be the first!</div>
+        <div id="comments-list"></div>
+        <div id="comment-form">
+          <h4>Leave a trail note</h4>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Name (optional)</label>
+              <input type="text" id="f-name" placeholder="Your name or leave blank"/>
+            </div>
+            <div class="form-field">
+              <label>Email (optional)</label>
+              <input type="email" id="f-email" placeholder="Not shown publicly"/>
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:8px">
+            <label>Your note</label>
+            <textarea id="f-message" placeholder="Trail conditions, tips, who you went with…"></textarea>
+          </div>
+          <button id="submit-comment" onclick="submitComment()">Post trail note</button>
+          <div id="form-msg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+/* ── SUPABASE CONFIG ── */
+var SB_URL = 'https://jctzuzvpvbuomhqbmwbx.supabase.co';
+var SB_KEY = 'sb_publishable_YMg3ybm0ZjJHrk3HBmCIBg_NSZAvQdg';
+
+function sbFetch(path, options){
+  var opts = options || {};
+  opts.headers = Object.assign({
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json'
+  }, opts.headers || {});
+  return fetch(SB_URL + '/rest/v1/' + path, opts);
+}
+
+/* ── NOTES (localStorage) ── */
+var NOTES_KEY='hike_notes_v3';
+function loadNotes(){try{return JSON.parse(localStorage.getItem(NOTES_KEY)||'{}')}catch(e){return {}}}
+function saveNote(id,txt){var n=loadNotes();if(txt.trim())n[id]=txt;else delete n[id];try{localStorage.setItem(NOTES_KEY,JSON.stringify(n))}catch(e){}}
+
+/* ── LIKED COMMENTS (localStorage) ── */
+function getLiked(){try{return JSON.parse(localStorage.getItem('hike_liked')||'[]')}catch(e){return[]}}
+function setLiked(arr){try{localStorage.setItem('hike_liked',JSON.stringify(arr))}catch(e){}}
+function hasLiked(id){return getLiked().indexOf(id)>-1;}
+function markLiked(id){var a=getLiked();if(a.indexOf(id)===-1){a.push(id);setLiked(a);}}
+
+var PHOTOS={
+  ak:"https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=70",
+  angel:"https://images.unsplash.com/photo-1563642421748-5047b6585a4a?w=400&q=70",
+  arch:"https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=70",
+  glacier:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&q=70",
+  yos:"https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&q=70",
+  mist:"https://images.unsplash.com/photo-1501743410621-d6db77de6fdc?w=400&q=70",
+  havasu:"https://images.unsplash.com/photo-1504386106331-3e4e71712b38?w=400&q=70",
+  cascades:"https://images.unsplash.com/photo-1472791108553-c9405341e398?w=400&q=70",
+  sierra:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=70",
+  sedona:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=70",
+  batur:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&q=70",
+  hawaii:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=400&q=70",
+  kauai:"https://images.unsplash.com/photo-1559494007-9f5847c49d94?w=400&q=70",
+  coast:"https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=400&q=70",
+  bayarea:"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&q=70",
+  alpine:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=70",
+  bigsur:"https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=400&q=70",
+  tahoe:"https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&q=70",
+  india:"https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&q=70",
+  forest:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&q=70",
+  redwood:"https://images.unsplash.com/photo-1560258018-c7db7645254e?w=400&q=70",
+  carson:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=70",
+  marin:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=70",
+  midwest:"https://images.unsplash.com/photo-1504700610630-ac6aba3536d3?w=400&q=70",
+  santacruz:"https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=400&q=70"
+};
+
+var hikes=[
+  {id:"harding-ice-field",name:"Harding Ice Field",loc:"Kenai Fjords NP, AK",lat:60.065,lng:-149.67,cat:"np",geo:"AK",diff:"Epic",elev:3650,miles:8.2,photo:"ak",at:"https://www.alltrails.com/trail/us/alaska/harding-icefield-trail"},
+  {id:"exit-glacier",name:"Exit Glacier",loc:"Kenai Fjords NP, AK",lat:60.189,lng:-149.633,cat:"np",geo:"AK",diff:"Easy",elev:200,miles:1.8,photo:"ak",at:"https://www.alltrails.com/trail/us/alaska/exit-glacier-trail"},
+  {id:"angels-landing",name:"Angel's Landing",loc:"Zion NP, UT",lat:37.2692,lng:-112.9476,cat:"np",geo:"SW",diff:"Hard",elev:1488,miles:5.4,photo:"angel",at:"https://www.alltrails.com/trail/us/utah/angels-landing-trail"},
+  {id:"canyon-overlook",name:"Canyon Overlook",loc:"Zion NP, UT",lat:37.213,lng:-112.9428,cat:"np",geo:"SW",diff:"Easy",elev:163,miles:1.0,photo:"arch",at:"https://www.alltrails.com/trail/us/utah/canyon-overlook-trail"},
+  {id:"delicate-arch",name:"Delicate Arch",loc:"Arches NP, UT",lat:38.7436,lng:-109.4993,cat:"np",geo:"SW",diff:"Moderate",elev:480,miles:3.0,photo:"arch",at:"https://www.alltrails.com/trail/us/utah/delicate-arch-trail"},
+  {id:"havasu-falls",name:"Havasu Falls",loc:"Grand Canyon, AZ",lat:36.2553,lng:-112.698,cat:"other",geo:"SW",diff:"Hard",elev:2400,miles:20.0,photo:"havasu",at:"https://www.alltrails.com/trail/us/arizona/havasu-falls-trail"},
+  {id:"sedona-airport",name:"Sedona Airport Loop",loc:"Sedona, AZ",lat:34.863,lng:-111.7908,cat:"other",geo:"SW",diff:"Easy",elev:200,miles:3.4,photo:"sedona",at:"https://www.alltrails.com/trail/us/arizona/airport-loop-trail"},
+  {id:"cathedral-rock",name:"Cathedral Rock via Baldwin Trail",loc:"Sedona, AZ",lat:34.823,lng:-111.7926,cat:"other",geo:"SW",diff:"Moderate",elev:742,miles:1.5,photo:"sedona",at:"https://www.alltrails.com/trail/us/arizona/cathedral-rock-trail"},
+  {id:"grinnell-glacier",name:"Grinnell Glacier",loc:"Glacier NP, MT",lat:48.7596,lng:-113.7185,cat:"np",geo:"MT",diff:"Hard",elev:1597,miles:11.0,photo:"glacier",at:"https://www.alltrails.com/trail/us/montana/grinnell-glacier-trail"},
+  {id:"mary-virginia-falls",name:"Mary & Virginia Falls",loc:"Glacier NP, MT",lat:48.6905,lng:-113.718,cat:"np",geo:"MT",diff:"Moderate",elev:800,miles:6.8,photo:"glacier",at:"https://www.alltrails.com/trail/us/montana/virginia-falls-trail"},
+  {id:"avalanche-lake",name:"Avalanche Lake",loc:"Glacier NP, MT",lat:48.6768,lng:-113.8194,cat:"np",geo:"MT",diff:"Moderate",elev:728,miles:5.9,photo:"glacier",at:"https://www.alltrails.com/trail/us/montana/avalanche-lake-trail"},
+  {id:"hidden-lake",name:"Hidden Lake",loc:"Glacier NP, MT",lat:48.6958,lng:-113.719,cat:"np",geo:"MT",diff:"Moderate",elev:1458,miles:5.3,photo:"glacier",at:"https://www.alltrails.com/trail/us/montana/hidden-lake-overlook-and-hidden-lake-trail"},
+  {id:"laduke",name:"Laduke Trail",loc:"Gardiner, MT",lat:45.0406,lng:-110.72,cat:"other",geo:"MT",diff:"Moderate",elev:600,miles:3.0,photo:"glacier",at:null},
+  {id:"cascade-pass",name:"Cascade Pass & Sahale Arm",loc:"North Cascades, WA",lat:48.4754,lng:-121.0736,cat:"np",geo:"WA",diff:"Hard",elev:3800,miles:12.4,photo:"cascades",at:"https://www.alltrails.com/trail/us/washington/cascade-pass-and-sahale-arm-trail"},
+  {id:"maple-pass",name:"Maple Pass Loop",loc:"North Cascades, WA",lat:48.5167,lng:-120.65,cat:"np",geo:"WA",diff:"Hard",elev:2100,miles:7.2,photo:"cascades",at:"https://www.alltrails.com/trail/us/washington/maple-pass-loop"},
+  {id:"colchuck-lake",name:"Colchuck Lake",loc:"Okanogan-Wenatchee NF, WA",lat:47.5289,lng:-120.8334,cat:"np",geo:"WA",diff:"Hard",elev:2280,miles:8.4,photo:"alpine",at:"https://www.alltrails.com/trail/us/washington/colchuck-lake-trail"},
+  {id:"cirque-rim",name:"Cirque Rim to Sunrise View Point",loc:"Olympic NP, WA",lat:47.9647,lng:-123.4999,cat:"np",geo:"WA",diff:"Moderate",elev:1500,miles:5.0,photo:"cascades",at:null},
+  {id:"cape-flattery",name:"Cape Flattery",loc:"Olympic Peninsula, WA",lat:48.3833,lng:-124.7167,cat:"other",geo:"WA",diff:"Easy",elev:200,miles:1.5,photo:"coast",at:"https://www.alltrails.com/trail/us/washington/cape-flattery-trail"},
+  {id:"east-bluff",name:"East Bluff & East Bluff Woods Trail Loop",loc:"Devil's Lake SP, WI",lat:43.4167,lng:-89.7333,cat:"other",geo:"WI",diff:"Moderate",elev:750,miles:3.6,photo:"midwest",at:"https://www.alltrails.com/trail/us/wisconsin/east-bluff-trail",isNew:true},
+  {id:"upper-yosemite-falls",name:"Upper Yosemite Falls & Yosemite Point",loc:"Yosemite NP, CA",lat:37.7657,lng:-119.5936,cat:"np",geo:"CA",diff:"Hard",elev:2700,miles:7.2,photo:"yos",at:"https://www.alltrails.com/trail/us/california/upper-yosemite-fall-trail"},
+  {id:"four-mile-trail",name:"4-Mile Trail + Panorama Trail",loc:"Yosemite NP, CA",lat:37.7299,lng:-119.6147,cat:"np",geo:"CA",diff:"Hard",elev:3200,miles:8.5,photo:"yos",at:"https://www.alltrails.com/trail/us/california/four-mile-trail"},
+  {id:"mist-trail",name:"Mist Trail (Vernal + Nevada Falls)",loc:"Yosemite NP, CA",lat:37.7302,lng:-119.5587,cat:"np",geo:"CA",diff:"Moderate",elev:1900,miles:6.6,photo:"mist",at:"https://www.alltrails.com/trail/us/california/mist-trail-to-vernal-and-nevada-falls"},
+  {id:"moro-rock",name:"Moro Rock",loc:"Sequoia NP, CA",lat:36.5469,lng:-118.7684,cat:"np",geo:"CA",diff:"Moderate",elev:300,miles:0.6,photo:"yos",at:"https://www.alltrails.com/trail/us/california/moro-rock-trail"},
+  {id:"pear-lakes",name:"Pear Lakes Trail",loc:"Sequoia NP, CA",lat:36.5824,lng:-118.6931,cat:"np",geo:"CA",diff:"Hard",elev:2400,miles:12.4,photo:"sierra",at:"https://www.alltrails.com/trail/us/california/pear-lake-trail"},
+  {id:"wapama",name:"Wapama Falls",loc:"Hetch Hetchy, Yosemite NP, CA",lat:37.9467,lng:-119.7943,cat:"np",geo:"CA",diff:"Easy",elev:400,miles:5.0,photo:"mist",at:"https://www.alltrails.com/trail/us/california/wapama-falls-trail"},
+  {id:"sentinel-dome",name:"Sentinel Dome & Taft Point Loop",loc:"Yosemite NP, CA",lat:37.7078,lng:-119.593,cat:"np",geo:"CA",diff:"Moderate",elev:1100,miles:4.9,photo:"yos",at:"https://www.alltrails.com/trail/us/california/sentinel-dome-and-taft-point-loop-trail"},
+  {id:"parker-lake",name:"Parker Lake",loc:"Eastern Sierra, CA",lat:37.8396,lng:-119.1,cat:"ca",geo:"CA",diff:"Easy",elev:440,miles:3.8,photo:"sierra",at:"https://www.alltrails.com/trail/us/california/parker-lake-trail"},
+  {id:"crowley-columns",name:"Crowley Columns",loc:"Eastern Sierra, CA",lat:37.5816,lng:-118.8406,cat:"ca",geo:"CA",diff:"Easy",elev:200,miles:2.0,photo:"sierra",at:null},
+  {id:"crystal-lake",name:"Crystal Lake",loc:"Mammoth Lakes, CA",lat:37.6191,lng:-118.9703,cat:"ca",geo:"CA",diff:"Moderate",elev:700,miles:2.0,photo:"sierra",at:"https://www.alltrails.com/trail/us/california/crystal-lake-trail--2"},
+  {id:"big-pine-lakes",name:"Big Pine Lakes",loc:"Eastern Sierra, CA",lat:37.1312,lng:-118.4785,cat:"ca",geo:"CA",diff:"Moderate",elev:1900,miles:11.4,photo:"sierra",at:"https://www.alltrails.com/trail/us/california/first-and-second-lakes-via-north-fork-trail"},
+  {id:"heart-lake",name:"Heart Lake",loc:"Mammoth Lakes, CA",lat:37.5966,lng:-119.0566,cat:"ca",geo:"CA",diff:"Moderate",elev:600,miles:4.0,photo:"sierra",at:null},
+  {id:"mcleod-lake",name:"McLeod Lake Trail",loc:"Mammoth Lakes, CA",lat:37.68,lng:-119.0,cat:"ca",geo:"CA",diff:"Easy",elev:350,miles:3.8,photo:"sierra",at:"https://www.alltrails.com/trail/us/california/mcleod-lake-trail"},
+  {id:"condor-gulch",name:"Condor Gulch to High Peaks",loc:"Pinnacles NP, CA",lat:36.4905,lng:-121.1969,cat:"np",geo:"CA",diff:"Moderate",elev:1300,miles:6.7,photo:"sedona",at:"https://www.alltrails.com/trail/us/california/condor-gulch-and-high-peaks-trail"},
+  {id:"old-pinnacles",name:"Old Pinnacles, Balconies & Juniper Canyon",loc:"Pinnacles NP, CA",lat:36.4822,lng:-121.2147,cat:"np",geo:"CA",diff:"Moderate",elev:800,miles:5.3,photo:"sedona",at:"https://www.alltrails.com/trail/us/california/old-pinnacles-balconies-cave-and-juniper-canyon-loop"},
+  {id:"monkey-rock",name:"Monkey Rock Trail",loc:"Lake Tahoe, CA",lat:39.0968,lng:-120.133,cat:"ca",geo:"CA",diff:"Easy",elev:300,miles:2.0,photo:"tahoe",at:"https://www.alltrails.com/trail/us/california/monkey-rock-trail"},
+  {id:"east-shore",name:"East Shore Trail",loc:"Lake Tahoe, CA",lat:39.1,lng:-119.95,cat:"ca",geo:"CA",diff:"Easy",elev:200,miles:3.0,photo:"tahoe",at:"https://www.alltrails.com/trail/us/nevada/tahoe-east-shore-trail"},
+  {id:"eagle-rock",name:"Eagle Rock Trail",loc:"Lake Tahoe, CA",lat:38.959,lng:-120.103,cat:"ca",geo:"CA",diff:"Easy",elev:400,miles:1.5,photo:"tahoe",at:"https://www.alltrails.com/trail/us/california/eagle-rock-trail",isNew:true},
+  {id:"vikingsholm",name:"Vikingsholm Trail",loc:"Lake Tahoe, CA",lat:38.951,lng:-120.106,cat:"ca",geo:"CA",diff:"Easy",elev:490,miles:1.8,photo:"tahoe",at:"https://www.alltrails.com/trail/us/california/vikingsholm-trail",isNew:true},
+  {id:"round-top-peak",name:"Round Top Peak via Kit Carson Pass",loc:"Carson Pass, CA",lat:38.6833,lng:-119.9833,cat:"ca",geo:"CA",diff:"Hard",elev:1800,miles:8.5,photo:"carson",at:"https://www.alltrails.com/trail/us/california/round-top-lake-and-winnemucca-lake-loop-trail",isNew:true},
+  {id:"partington-cove",name:"Partington Cove",loc:"Big Sur, CA",lat:36.172,lng:-121.6816,cat:"ca",geo:"CA",diff:"Easy",elev:200,miles:1.0,photo:"bigsur",at:"https://www.alltrails.com/trail/us/california/partington-cove-trail"},
+  {id:"tanbark",name:"Tanbark Trail & Tin House Loop",loc:"Big Sur, CA",lat:36.196,lng:-121.6929,cat:"ca",geo:"CA",diff:"Hard",elev:1800,miles:6.4,photo:"bigsur",at:"https://www.alltrails.com/trail/us/california/tin-house-loop-tanbark-trail"},
+  {id:"soberanes",name:"Soberanes Canyon",loc:"Big Sur, CA",lat:36.4527,lng:-121.9252,cat:"ca",geo:"CA",diff:"Hard",elev:2800,miles:6.0,photo:"bigsur",at:"https://www.alltrails.com/trail/us/california/soberanes-canyon-trail"},
+  {id:"skyline-sea",name:"Skyline to the Sea (Waterman Gap)",loc:"Big Basin Redwoods SP, CA",lat:37.1741,lng:-122.2222,cat:"ca",geo:"CA",diff:"Hard",elev:2800,miles:29.0,photo:"redwood",at:"https://www.alltrails.com/trail/us/california/skyline-to-the-sea-trail"},
+  {id:"wilder-ranch",name:"Baldwin, Enchanted, Wilder Ridge Loop",loc:"Wilder Ranch SP, Santa Cruz, CA",lat:36.9757,lng:-122.0806,cat:"ca",geo:"CA",diff:"Moderate",elev:900,miles:8.5,photo:"santacruz",at:"https://www.alltrails.com/trail/us/california/wilder-ridge-and-long-meadow-loop",isNew:true},
+  {id:"webb-canyon",name:"Webb Canyon & Mine Hill Loop",loc:"Almaden Quicksilver, CA",lat:37.201,lng:-121.873,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1100,miles:7.5,photo:"forest",at:null},
+  {id:"harmony-gate",name:"Harmony Gate & Olive Orchard",loc:"Hollister Hills, CA",lat:36.79,lng:-121.36,cat:"ca",geo:"CA",diff:"Easy",elev:300,miles:3.0,photo:"forest",at:null},
+  {id:"zinfandel",name:"Zinfandel to Lookout Trail & Maisie's Peak",loc:"Pichetti Ranch / Stevens Creek, CA",lat:37.3215,lng:-122.1007,cat:"bayarea",geo:"CA",diff:"Moderate",elev:850,miles:5.2,photo:"forest",at:"https://www.alltrails.com/trail/us/california/zinfandel-trail-to-lookout-trail-and-vista-loop",isNew:true},
+  {id:"steep-ravine",name:"Steep Ravine, Dipsea & Matt Davis Loop",loc:"Mill Valley, CA",lat:37.9071,lng:-122.586,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1800,miles:6.8,photo:"coast",at:"https://www.alltrails.com/trail/us/california/matt-davis-steep-ravine-and-dipsea-loop"},
+  {id:"dipsea",name:"Dipsea Trail",loc:"Marin, CA",lat:37.9021,lng:-122.5527,cat:"bayarea",geo:"CA",diff:"Hard",elev:2700,miles:10.0,photo:"coast",at:"https://www.alltrails.com/trail/us/california/dipsea-trail--2",isNew:true},
+  {id:"kirby-cove",name:"Kirby Cove",loc:"Golden Gate NRA, CA",lat:37.8338,lng:-122.5029,cat:"bayarea",geo:"CA",diff:"Easy",elev:250,miles:2.2,photo:"coast",at:"https://www.alltrails.com/trail/us/california/kirby-cove-trail"},
+  {id:"tennessee-valley",name:"Tennessee Valley",loc:"Golden Gate NRA, CA",lat:37.8696,lng:-122.5375,cat:"bayarea",geo:"CA",diff:"Easy",elev:350,miles:3.8,photo:"coast",at:"https://www.alltrails.com/trail/us/california/tennessee-valley-trail"},
+  {id:"alta-trail",name:"Alta Trail",loc:"Marin County, CA",lat:37.9124,lng:-122.566,cat:"bayarea",geo:"CA",diff:"Moderate",elev:700,miles:4.0,photo:"coast",at:null},
+  {id:"lands-end",name:"Lands End",loc:"Golden Gate NRA, CA",lat:37.7802,lng:-122.5082,cat:"bayarea",geo:"CA",diff:"Easy",elev:300,miles:3.5,photo:"coast",at:"https://www.alltrails.com/trail/us/california/lands-end-trail"},
+  {id:"mori-point",name:"Mori Point",loc:"Pacifica, CA",lat:37.6133,lng:-122.4895,cat:"bayarea",geo:"CA",diff:"Easy",elev:360,miles:2.5,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/mori-point-trail"},
+  {id:"pedro-point",name:"Pedro Point",loc:"Pacifica, CA",lat:37.5817,lng:-122.5049,cat:"bayarea",geo:"CA",diff:"Moderate",elev:900,miles:3.5,photo:"coast",at:null},
+  {id:"batteries-bluffs",name:"Batteries to Bluffs",loc:"Golden Gate NRA, CA",lat:37.7958,lng:-122.532,cat:"bayarea",geo:"CA",diff:"Easy",elev:280,miles:1.4,photo:"coast",at:"https://www.alltrails.com/trail/us/california/battery-to-bluffs-trail"},
+  {id:"milagra",name:"Milagra Overlook",loc:"Pacifica, CA",lat:37.6317,lng:-122.4927,cat:"bayarea",geo:"CA",diff:"Easy",elev:280,miles:1.8,photo:"bayarea",at:null},
+  {id:"north-peak",name:"North Peak via Montara Mountain",loc:"Pacifica, CA",lat:37.5667,lng:-122.508,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1460,miles:6.0,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/north-peak-via-montara-mountain-trail"},
+  {id:"tv-muir-beach",name:"Tennessee Valley to Muir Beach",loc:"Golden Gate NRA, CA",lat:37.8636,lng:-122.528,cat:"bayarea",geo:"CA",diff:"Moderate",elev:900,miles:8.1,photo:"coast",at:"https://www.alltrails.com/trail/us/california/tennessee-valley-to-muir-beach-via-coastal-trail"},
+  {id:"baquiano-sweeney",name:"Baquiano, Sweeney Ridge & Mori Ridge",loc:"Pacifica, CA",lat:37.6133,lng:-122.4845,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1400,miles:8.0,photo:"bayarea",at:null},
+  {id:"summit-loop",name:"Summit Loop & Ridge Trail",loc:"San Bruno Mountain SP, CA",lat:37.6906,lng:-122.4338,cat:"bayarea",geo:"CA",diff:"Moderate",elev:900,miles:4.1,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/summit-loop-trail"},
+  {id:"coastal-miwok",name:"Coastal, Miwok & Bonita Lighthouse Loop",loc:"Golden Gate NRA, CA",lat:37.8333,lng:-122.5283,cat:"bayarea",geo:"CA",diff:"Moderate",elev:900,miles:4.5,photo:"coast",at:"https://www.alltrails.com/trail/us/california/coastal-miwok-and-bonita-lighthouse-loop"},
+  {id:"tv-coastal-fox",name:"Tennessee Valley, Muir Beach, Coastal & Fox Trail",loc:"Golden Gate NRA, CA",lat:37.862,lng:-122.522,cat:"bayarea",geo:"CA",diff:"Moderate",elev:950,miles:7.5,photo:"coast",at:null},
+  {id:"sweeney-ridge",name:"Sweeney Ridge",loc:"Pacifica, CA",lat:37.6167,lng:-122.4728,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1200,miles:5.6,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/sweeney-ridge-trail"},
+  {id:"mission-peak",name:"Panorama Trail, Mission Peak",loc:"Fremont, CA",lat:37.513,lng:-121.88,cat:"bayarea",geo:"CA",diff:"Hard",elev:2100,miles:6.4,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/mission-peak-regional-preserve"},
+  {id:"slacker-hawk",name:"Slacker Hill & Hawk Hill via Coastal Trail",loc:"Golden Gate NRA, CA",lat:37.8333,lng:-122.505,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1525,miles:7.0,photo:"coast",at:"https://www.alltrails.com/trail/us/california/slacker-hill-and-hawk-hill-via-coastal-trail",yt:"https://www.youtube.com/watch?v=lCU8naEDxSo&t=345s"},
+  {id:"french-bridle",name:"French, Bridle & Stream Trail Loop",loc:"Redwood Regional Park, CA",lat:37.8083,lng:-122.15,cat:"bayarea",geo:"CA",diff:"Moderate",elev:800,miles:5.0,photo:"redwood",at:null},
+  {id:"little-yosemite",name:"Little Yosemite via Camp Ohlone Loop",loc:"Sunol Wilderness, CA",lat:37.5133,lng:-121.8283,cat:"bayarea",geo:"CA",diff:"Moderate",elev:900,miles:6.1,photo:"mist",at:"https://www.alltrails.com/trail/us/california/little-yosemite-and-camp-ohlone-loop",yt:"https://www.youtube.com/watch?v=lSAzJPrOxlg"},
+  {id:"dawn-falls",name:"Dawn Falls Trail",loc:"Marin County, CA",lat:37.92,lng:-122.57,cat:"bayarea",geo:"CA",diff:"Easy",elev:320,miles:2.0,photo:"forest",at:"https://www.alltrails.com/trail/us/california/dawn-falls-trail"},
+  {id:"saratoga-gap",name:"Saratoga Gap & Ridge Loop",loc:"Castle Rock SP, CA",lat:37.2313,lng:-122.0934,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1200,miles:7.2,photo:"forest",at:"https://www.alltrails.com/trail/us/california/saratoga-gap-and-ridge-trail-loop"},
+  {id:"whittemore-gulch",name:"Whittemore Gulch & Harkins Ridge",loc:"Purisima Creek, CA",lat:37.4265,lng:-122.3551,cat:"bayarea",geo:"CA",diff:"Hard",elev:1500,miles:5.8,photo:"forest",at:"https://www.alltrails.com/trail/us/california/whittemore-gulch-and-harkins-ridge-loop"},
+  {id:"purisima-creek",name:"Purisima Creek & Whittemore Gulch Loop",loc:"Purisima Creek, Half Moon Bay, CA",lat:37.432,lng:-122.355,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1200,miles:7.5,photo:"redwood",at:"https://www.alltrails.com/trail/us/california/whittemore-gulch-and-purisima-creek-loop-trail",isNew:true},
+  {id:"bills-barnabe",name:"Bill's Trail to Mt. Barnabe Peak Loop",loc:"Samuel P Taylor SP, Marin, CA",lat:38.0086,lng:-122.7288,cat:"bayarea",geo:"CA",diff:"Moderate",elev:1300,miles:7.0,photo:"marin",at:"https://www.alltrails.com/trail/us/california/bills-trail-to-mount-barnabe-peak-loop",isNew:true},
+  {id:"seaview-tilden",name:"Seaview Trail",loc:"Tilden Regional Preserve, CA",lat:37.9033,lng:-122.2396,cat:"bayarea",geo:"CA",diff:"Moderate",elev:700,miles:5.0,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/seaview-trail--4",isNew:true},
+  {id:"ace-pedro",name:"Ace Trail to Pedro Point Headlands",loc:"Pacifica, CA",lat:37.578,lng:-122.507,cat:"bayarea",geo:"CA",diff:"Moderate",elev:900,miles:4.0,photo:"coast",at:"https://www.alltrails.com/trail/us/california/ace-trail",isNew:true},
+  {id:"montara-loop",name:"Montara Mountain North Peak Loop",loc:"Pacifica, CA",lat:37.5635,lng:-122.509,cat:"bayarea",geo:"CA",diff:"Hard",elev:1800,miles:9.0,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/montara-mountain-north-peak-loop",yt:"https://www.youtube.com/watch?v=VZ6HG5_OvB4",isNew:true},
+  {id:"alta-montara-loop",name:"Alta Vista & Montara Mountain Loop",loc:"Pacifica, CA",lat:37.569,lng:-122.508,cat:"bayarea",geo:"CA",diff:"Hard",elev:1700,miles:8.5,photo:"bayarea",at:"https://www.alltrails.com/trail/us/california/alta-vista-and-montara-mountain-loop",isNew:true},
+  {id:"wiliwilinui",name:"Wiliwilinui Ridge Trail",loc:"Oahu, HI",lat:21.315,lng:-157.7793,cat:"hawaii",geo:"HI",diff:"Hard",elev:1500,miles:5.6,photo:"hawaii",at:"https://www.alltrails.com/trail/us/hawaii/wiliwilinui-trail"},
+  {id:"lanikai-pillbox",name:"Lanikai Pillbox",loc:"Oahu, HI",lat:21.39,lng:-157.7157,cat:"hawaii",geo:"HI",diff:"Moderate",elev:700,miles:1.8,photo:"hawaii",at:"https://www.alltrails.com/trail/us/hawaii/lanikai-pillbox-hike"},
+  {id:"makapuu",name:"Makapu'u Lighthouse Trail",loc:"Oahu, HI",lat:21.3094,lng:-157.6502,cat:"hawaii",geo:"HI",diff:"Easy",elev:500,miles:2.0,photo:"hawaii",at:"https://www.alltrails.com/trail/us/hawaii/makapuu-point-lighthouse-trail"},
+  {id:"hanakapi-ai",name:"Hanakapi'ai Beach (Kalalau Trail)",loc:"Kauai, HI",lat:22.2234,lng:-159.5917,cat:"hawaii",geo:"HI",diff:"Hard",elev:800,miles:4.0,photo:"kauai",at:"https://www.alltrails.com/trail/us/hawaii/hanakapi-ai-beach-trail"},
+  {id:"onomea",name:"Onomea Trail",loc:"Hilo, Big Island, HI",lat:19.89,lng:-155.1,cat:"hawaii",geo:"HI",diff:"Easy",elev:150,miles:1.5,photo:"hawaii",at:"https://www.alltrails.com/trail/us/hawaii/onomea-trail"},
+  {id:"captain-cook",name:"Captain Cook Monument Trail",loc:"Kona, Big Island, HI",lat:19.4743,lng:-155.9231,cat:"hawaii",geo:"HI",diff:"Hard",elev:1400,miles:3.9,photo:"hawaii",at:"https://www.alltrails.com/trail/us/hawaii/captain-cook-monument-trail"},
+  {id:"makalawena",name:"Makalawena Beach",loc:"Kona, Big Island, HI",lat:19.72,lng:-156.05,cat:"hawaii",geo:"HI",diff:"Moderate",elev:200,miles:3.0,photo:"hawaii",at:"https://www.alltrails.com/trail/us/hawaii/makalawena-beach-trail"},
+  {id:"mount-batur",name:"Mount Batur Sunrise",loc:"Bali, Indonesia",lat:-8.2422,lng:115.375,cat:"intl",geo:"INTL",diff:"Hard",elev:1700,miles:5.0,photo:"batur",at:"https://www.alltrails.com/trail/indonesia/bali/mount-batur-sunrise-trek"},
+  {id:"kodachadri",name:"Kodachadri Peak",loc:"Shimoga, India",lat:14.05,lng:74.87,cat:"intl",geo:"INTL",diff:"Hard",elev:1900,miles:7.0,photo:"india",at:null},
+  {id:"narasimha",name:"Narasimha Parvatha",loc:"Agumbe, India",lat:13.51,lng:75.09,cat:"intl",geo:"INTL",diff:"Hard",elev:1600,miles:6.0,photo:"india",at:null},
+  {id:"mullayyanagiri",name:"Mullayyanagiri",loc:"Chikmagalur, India",lat:13.4933,lng:75.7133,cat:"intl",geo:"INTL",diff:"Moderate",elev:1200,miles:4.0,photo:"india",at:"https://www.alltrails.com/trail/india/karnataka/mullayanagiri-peak"},
+  {id:"rangaswamy",name:"Rangaswamy Betta",loc:"Kanakpura, India",lat:12.55,lng:77.42,cat:"intl",geo:"INTL",diff:"Moderate",elev:600,miles:3.0,photo:"india",at:null},
+  {id:"mari-kanive",name:"Mari Kanive",loc:"Chitradurga, India",lat:14.2333,lng:76.4,cat:"intl",geo:"INTL",diff:"Moderate",elev:700,miles:3.0,photo:"india",at:null},
+  {id:"madhugiri",name:"Madhugiri",loc:"Tumkur, India",lat:13.6633,lng:77.2061,cat:"intl",geo:"INTL",diff:"Hard",elev:1100,miles:4.0,photo:"india",at:null},
+  {id:"shivagange",name:"Shivagange",loc:"Tumkur, India",lat:13.2283,lng:77.5833,cat:"intl",geo:"INTL",diff:"Moderate",elev:800,miles:3.5,photo:"india",at:null}
+];
+
+var maxElev=0;
+for(var i=0;i<hikes.length;i++){if(hikes[i].elev>maxElev)maxElev=hikes[i].elev;}
+var catColors={np:"#52ae32",bayarea:"#2e7ab5",ca:"#2e7ab5",hawaii:"#e07b39",intl:"#9b5de5",other:"#c0392b"};
+var diffBg={Easy:"#d4edda",Moderate:"#fff3cd",Hard:"#ffe0cc",Epic:"#f0d0ff"};
+var diffFg={Easy:"#1a5c2a",Moderate:"#7a5100",Hard:"#8b2e00",Epic:"#5c0077"};
+var diffOrder={Easy:0,Moderate:1,Hard:2,Epic:3};
+var currentSort='name',vlogOnly=false,activeId=null,drawerHikeId=null;
+var markerMap={};
+
+/* ── MAP ── */
+var map=L.map('hike-map',{center:[36,-110],zoom:4});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+var clusterGroup=L.markerClusterGroup({
+  maxClusterRadius:55,
+  iconCreateFunction:function(cluster){
+    var ms=cluster.getAllChildMarkers(),cc={};
+    ms.forEach(function(m){var c=m.options.hcat;cc[c]=(cc[c]||0)+1;});
+    var dom=Object.keys(cc).sort(function(a,b){return cc[b]-cc[a];})[0];
+    var col=catColors[dom]||'#555',cnt=cluster.getChildCount();
+    return L.divIcon({html:'<div style="background:'+col+';color:#fff;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.18)">'+cnt+'</div>',className:'',iconSize:[42,42],iconAnchor:[21,21]});
+  }
+});
+map.addLayer(clusterGroup);
+
+function makeIcon(color,diff,isNew,hasYt,isActive){
+  var ring=diffBg[diff]||'#eee',bw=isActive?'3':'2',bc=isActive?'#1a2e1a':'white';
+  var inner=hasYt?'<polygon points="13,11 13,17 18,14" fill="#cc0000"/>':(isNew?'<circle cx="15" cy="14" r="3" fill="#f59e0b"/>':'');
+  var svg='<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg"><path d="M15 0C6.716 0 0 6.716 0 15c0 10 15 25 15 25S30 25 30 15C30 6.716 23.284 0 15 0z" fill="'+color+'" stroke="'+bc+'" stroke-width="'+bw+'"/><circle cx="15" cy="14" r="7" fill="'+ring+'" opacity="0.95"/>'+inner+'</svg>';
+  return L.divIcon({html:svg,className:'',iconSize:[30,40],iconAnchor:[15,40],popupAnchor:[0,-42]});
+}
+
+function diffBadge(diff){
+  return '<span class="diff-pill diff-'+diff.toLowerCase()+'" style="background:'+diffBg[diff]+';color:'+diffFg[diff]+'">'+diff+'</span>';
+}
+
+function buildAllMarkers(){
+  hikes.forEach(function(h){
+    var color=catColors[h.cat]||'#888';
+    var marker=L.marker([h.lat,h.lng],{icon:makeIcon(color,h.diff,h.isNew,!!h.yt,false),hcat:h.cat,hid:h.id});
+    marker.on('mouseover',function(){
+      var img=document.getElementById('hc-img');
+      img.style.display='block';
+      img.src=PHOTOS[h.photo]||PHOTOS.forest;
+      img.onerror=function(){img.style.display='none';};
+      document.getElementById('hc-name').innerHTML=h.name+(h.isNew?' <span class="new-pill">NEW</span>':'')+(h.yt?' <span class="vlog-pill">▶</span>':'');
+      document.getElementById('hc-loc').textContent=h.loc;
+      document.getElementById('hc-meta').innerHTML=diffBadge(h.diff)+'<span style="font-size:10px;color:#666">+'+h.elev.toLocaleString()+' ft &bull; '+h.miles+' mi</span>';
+      document.getElementById('hover-card').style.display='block';
+    });
+    marker.on('mouseout',function(){document.getElementById('hover-card').style.display='none';});
+    marker.on('click',function(){openDrawer(h.id,false);});
+    // Minimal popup just as fallback
+    marker.bindPopup('<div class="popup-wrap"><div class="popup-name">'+h.name+'</div><div class="popup-loc">'+h.loc+'</div><button class="popup-open-btn" onclick="openDrawer(\''+h.id+'\',false)">View details & comments</button></div>',{maxWidth:220,minWidth:180});
+    markerMap[h.id]=marker;
+  });
+}
+
+function refreshMarkerIcons(){
+  hikes.forEach(function(h){
+    var m=markerMap[h.id];if(!m)return;
+    var color=catColors[h.cat]||'#888';
+    m.setIcon(makeIcon(color,h.diff,h.isNew,!!h.yt,h.id===activeId));
+  });
+}
+
+/* ── DRAWER ── */
+function openDrawer(id, flyTo){
+  activeId=id;drawerHikeId=id;
+  var h=null;for(var i=0;i<hikes.length;i++){if(hikes[i].id===id){h=hikes[i];break;}}
+  if(!h)return;
+  refreshMarkerIcons();
+  renderList(getSorted(getFiltered()));
+
+  // Populate header
+  document.getElementById('drawer-hike-name').textContent=h.name;
+  document.getElementById('drawer-hike-loc').textContent=h.loc;
+  document.getElementById('drawer-hike-meta').innerHTML=diffBadge(h.diff)+(h.isNew?' <span class="new-pill">NEW</span>':'')+(h.yt?' <span class="vlog-pill">▶ Vlog</span>':'');
+  document.getElementById('drawer-elev-bar').style.width=Math.round((h.elev/maxElev)*100)+'%';
+  document.getElementById('drawer-hike-stats').innerHTML='<span class="drawer-stat">📍 '+h.miles+' mi</span><span class="drawer-stat">⬆ +'+h.elev.toLocaleString()+' ft elev gain</span>';
+
+  var btns='';
+  if(h.at) btns+='<a class="at-btn" href="'+h.at+'" target="_blank">AllTrails ↗</a>';
+  if(h.yt) btns+='<a class="yt-watch-btn" href="'+h.yt+'" target="_blank">▶ Watch vlog</a>';
+  document.getElementById('drawer-btn-row').innerHTML=btns;
+
+  // YouTube comment prompt
+  var ytPrompt=document.getElementById('yt-comment-prompt');
+  var ytLink=document.getElementById('yt-comment-link');
+  if(h.yt){
+    ytPrompt.style.display='block';
+    ytLink.href=h.yt;
+  } else {
+    ytPrompt.style.display='none';
+  }
+
+  // Reset form
+  document.getElementById('f-name').value='';
+  document.getElementById('f-email').value='';
+  document.getElementById('f-message').value='';
+  document.getElementById('form-msg').textContent='';
+  document.getElementById('form-msg').className='';
+
+  // Open drawer
+  var overlay=document.getElementById('drawer-overlay');
+  overlay.style.display='flex';
+  setTimeout(function(){overlay.classList.add('open');},10);
+
+  // Load comments
+  loadComments(id);
+
+  // Fly map
+  if(flyTo){
+    map.flyTo([h.lat,h.lng],13,{duration:0.7,easeLinearity:0.5});
+    map.once('moveend',function(){
+      clusterGroup.zoomToShowLayer(markerMap[id],function(){});
+    });
+  } else {
+    clusterGroup.zoomToShowLayer(markerMap[id],function(){});
+  }
+}
+
+function closeDrawer(e){
+  if(e&&e.target!==document.getElementById('drawer-overlay'))return;
+  closeDrawerDirect();
+}
+function closeDrawerDirect(){
+  var overlay=document.getElementById('drawer-overlay');
+  overlay.classList.remove('open');
+  setTimeout(function(){overlay.style.display='none';},260);
+  activeId=null;drawerHikeId=null;
+  refreshMarkerIcons();
+  renderList(getSorted(getFiltered()));
+}
+
+/* ── COMMENTS ── */
+function loadComments(hikeId){
+  document.getElementById('comments-loading').style.display='block';
+  document.getElementById('comments-list').innerHTML='';
+  document.getElementById('no-comments').style.display='none';
+  sbFetch('comments?hike_id=eq.'+encodeURIComponent(hikeId)+'&order=created_at.asc&select=*')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      document.getElementById('comments-loading').style.display='none';
+      if(!data||data.length===0){
+        document.getElementById('no-comments').style.display='block';
+        return;
+      }
+      var html='';
+      data.forEach(function(c){
+        var author=c.name&&c.name.trim()?c.name.trim():'Anonymous';
+        var dt=new Date(c.created_at);
+        var timeStr=dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        var liked=hasLiked(c.id);
+        html+='<div class="comment-item" id="comment-'+c.id+'">'
+          +'<div class="comment-top">'
+            +'<span class="comment-author">'+escHtml(author)+'</span>'
+            +'<span class="comment-time">'+timeStr+'</span>'
+          +'</div>'
+          +'<div class="comment-msg">'+escHtml(c.message)+'</div>'
+          +'<div class="comment-like">'
+            +'<button class="like-btn'+(liked?' liked':'')+'" onclick="likeComment(\''+c.id+'\','+(c.likes||0)+')" id="like-btn-'+c.id+'">'
+              +'👍 <span id="like-count-'+c.id+'">'+(c.likes||0)+'</span>'
+            +'</button>'
+          +'</div>'
+        +'</div>';
+      });
+      document.getElementById('comments-list').innerHTML=html;
+    })
+    .catch(function(){
+      document.getElementById('comments-loading').textContent='Could not load comments.';
+    });
+}
+
+function likeComment(commentId, currentLikes){
+  if(hasLiked(commentId)) return;
+  var newLikes=currentLikes+1;
+  sbFetch('comments?id=eq.'+commentId,{
+    method:'PATCH',
+    headers:{'Prefer':'return=minimal'},
+    body:JSON.stringify({likes:newLikes})
+  }).then(function(r){
+    if(r.ok){
+      markLiked(commentId);
+      var btn=document.getElementById('like-btn-'+commentId);
+      var cnt=document.getElementById('like-count-'+commentId);
+      if(btn) btn.classList.add('liked');
+      if(cnt) cnt.textContent=newLikes;
+    }
+  });
+}
+
+function submitComment(){
+  var name=document.getElementById('f-name').value.trim();
+  var email=document.getElementById('f-email').value.trim();
+  var message=document.getElementById('f-message').value.trim();
+  var msgEl=document.getElementById('form-msg');
+  if(!message){msgEl.textContent='Please write a note first.';msgEl.className='error';return;}
+  var btn=document.getElementById('submit-comment');
+  btn.disabled=true;btn.textContent='Posting…';
+  var payload={hike_id:drawerHikeId,message:message};
+  if(name) payload.name=name;
+  if(email) payload.email=email;
+  sbFetch('comments',{
+    method:'POST',
+    headers:{'Prefer':'return=minimal'},
+    body:JSON.stringify(payload)
+  }).then(function(r){
+    btn.disabled=false;btn.textContent='Post trail note';
+    if(r.ok||r.status===201){
+      msgEl.textContent='Posted! Thanks for sharing 🙌';msgEl.className='success';
+      document.getElementById('f-name').value='';
+      document.getElementById('f-email').value='';
+      document.getElementById('f-message').value='';
+      document.getElementById('no-comments').style.display='none';
+      loadComments(drawerHikeId);
+    } else {
+      msgEl.textContent='Something went wrong. Try again.';msgEl.className='error';
+    }
+  }).catch(function(){
+    btn.disabled=false;btn.textContent='Post trail note';
+    msgEl.textContent='Network error. Try again.';msgEl.className='error';
+  });
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── FILTERS & LIST ── */
+function getFiltered(){
+  var cat=document.getElementById('f-cat').value,diff=document.getElementById('f-diff').value,geo=document.getElementById('f-geo').value;
+  var q=(document.getElementById('search-box').value||'').toLowerCase().trim();
+  return hikes.filter(function(h){
+    if(cat&&h.cat!==cat)return false;
+    if(diff&&h.diff!==diff)return false;
+    if(geo&&h.geo!==geo)return false;
+    if(vlogOnly&&!h.yt)return false;
+    if(q&&h.name.toLowerCase().indexOf(q)===-1&&h.loc.toLowerCase().indexOf(q)===-1)return false;
+    return true;
+  });
+}
+function getSorted(data){
+  var d=data.slice();
+  if(currentSort==='name')d.sort(function(a,b){return a.name.localeCompare(b.name);});
+  else if(currentSort==='elev')d.sort(function(a,b){return b.elev-a.elev;});
+  else if(currentSort==='miles')d.sort(function(a,b){return b.miles-a.miles;});
+  else if(currentSort==='diff')d.sort(function(a,b){return(diffOrder[b.diff]||0)-(diffOrder[a.diff]||0);});
+  return d;
+}
+
+function renderList(data){
+  var el=document.getElementById('hike-list'),html='';
+  data.forEach(function(h){
+    var color=catColors[h.cat]||'#888',isActive=h.id===activeId;
+    var pills='<span class="diff-pill diff-'+h.diff.toLowerCase()+'" style="background:'+diffBg[h.diff]+';color:'+diffFg[h.diff]+'">'+h.diff+'</span>';
+    if(h.isNew)pills+=' <span class="new-pill">NEW</span>';
+    if(h.yt)pills+=' <span class="vlog-pill">▶ Vlog</span>';
+    var links='';
+    if(h.at)links+='<a class="hr-at" href="'+h.at+'" target="_blank" onclick="event.stopPropagation()">AllTrails ↗</a>';
+    if(h.yt)links+='<a class="hr-yt" href="'+h.yt+'" target="_blank" onclick="event.stopPropagation()">▶ Watch</a>';
+    html+='<div class="hike-row'+(isActive?' active':'')+'" data-id="'+h.id+'" onclick="openDrawer(\''+h.id+'\',true)">'
+      +'<div class="hr-dot" style="background:'+color+'"></div>'
+      +'<div class="hr-body">'
+        +'<div class="hr-name">'+h.name+'</div>'
+        +'<div class="hr-meta">'+h.loc+'</div>'
+        +'<div class="hr-meta">'+h.miles+' mi &bull; +'+h.elev.toLocaleString()+' ft</div>'
+        +'<div class="hr-meta" style="margin-top:3px">'+pills+'</div>'
+        +(links?'<div class="hr-links">'+links+'</div>':'')
+      +'</div></div>';
+  });
+  el.innerHTML=html;
+  if(activeId){var row=el.querySelector('[data-id="'+activeId+'"]');if(row)row.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+
+function render(){
+  var filtered=getFiltered(),sorted=getSorted(filtered);
+  clusterGroup.clearLayers();
+  filtered.forEach(function(h){clusterGroup.addLayer(markerMap[h.id]);});
+  renderList(sorted);
+  refreshMarkerIcons();
+  document.getElementById('filter-count').textContent=filtered.length+' of '+hikes.length+' hikes';
+  document.getElementById('list-count').textContent=filtered.length+' hikes';
+  document.getElementById('hs-total').textContent=hikes.length;
+  document.getElementById('hs-vlogs').textContent=hikes.filter(function(h){return!!h.yt;}).length;
+  var r={};hikes.forEach(function(h){r[h.geo]=1;});
+  document.getElementById('hs-regions').textContent=Object.keys(r).length;
+}
+
+function applyFilters(){render();}
+function setSort(s,btn){
+  currentSort=s;
+  document.querySelectorAll('.sort-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  render();
+}
+function toggleVlogFilter(){
+  vlogOnly=!vlogOnly;
+  document.getElementById('vlog-filter').classList.toggle('active',vlogOnly);
+  render();
+}
+
+buildAllMarkers();
+render();
+</script>
+</body>
+</html>
