@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jyothi Prakash</title>
+<meta name="description" content="Product leader, hiker, musician, and writer based in the Bay Area."/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green:   #1a2e1a;
+    --green2:  #2d4f2d;
+    --accent:  #52ae32;
+    --red:     #ff0000;
+    --blue:    #0a66c2;
+    --ink:     #111;
+    --muted:   #666;
+    --border:  #e8e4dc;
+    --bg:      #f7f5f0;
+    --card:    #fff;
+  }
+
+  html, body {
+    min-height: 100%;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* ── HERO ── */
+  #hero {
+    background: var(--green);
+    color: #fff;
+    padding: 64px 24px 56px;
+    text-align: center;
+  }
+  #avatar {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.25);
+    background: var(--green2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 20px;
+    user-select: none;
+  }
+  #hero h1 {
+    font-size: 28px; font-weight: 600; letter-spacing: -.02em;
+    margin-bottom: 8px;
+  }
+  #hero p {
+    font-size: 15px; color: #8dbc7a; font-weight: 400;
+    max-width: 360px; margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+  #hero-links {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  }
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: 100px;
+    font-size: 13px; font-weight: 500;
+    text-decoration: none; transition: opacity .15s, transform .15s;
+    white-space: nowrap;
+  }
+  .hero-pill:hover { opacity: .85; transform: translateY(-1px); }
+  .hero-pill svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .pill-linkedin { background: var(--blue); color: #fff; }
+  .pill-hikes    { background: var(--accent); color: #fff; }
+
+  /* ── SECTION ── */
+  #content {
+    max-width: 680px; margin: 0 auto; padding: 48px 20px 80px;
+  }
+  .section { margin-bottom: 48px; }
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* ── CARDS ── */
+  .card-grid { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+    text-decoration: none; color: inherit;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-1px); }
+  .card-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { font-size: 14px; font-weight: 500; color: #111; margin-bottom: 2px; }
+  .card-desc  { font-size: 12px; color: var(--muted); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-arrow { font-size: 16px; color: #ccc; flex-shrink: 0; }
+
+  /* icon bg colours */
+  .ic-green  { background: #edf7e8; }
+  .ic-red    { background: #fff0f0; }
+  .ic-blue   { background: #e8f0fe; }
+  .ic-amber  { background: #fff8e1; }
+  .ic-purple { background: #f3e8ff; }
+  .ic-teal   { background: #e0f7f4; }
+
+  /* ── WRITING CARDS (slightly different) ── */
+  .writing-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+    text-decoration: none; color: inherit;
+    transition: box-shadow .15s, transform .15s;
+    display: block;
+  }
+  .writing-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-1px); }
+  .writing-tag {
+    font-size: 10px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 5px;
+  }
+  .writing-title {
+    font-size: 15px; font-weight: 500; color: #111;
+    line-height: 1.4; margin-bottom: 4px;
+  }
+  .writing-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .writing-grid { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; font-size: 11px; color: #bbb;
+    padding: 24px 0 32px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div id="hero">
+  <div id="avatar">🌿</div>
+  <h1>Jyothi Prakash</h1>
+  <p>Product leader · hiker · musician · writer<br/>Bay Area, California</p>
+  <div id="hero-links">
+    <a class="hero-pill pill-linkedin" href="https://linkedin.com/in/jyothiprakash" target="_blank">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.37V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.59 0 4.26 2.37 4.26 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM3.56 20.45h3.55V9H3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+      LinkedIn
+    </a>
+    <a class="hero-pill pill-hikes" href="/hikes">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>
+      My Hikes
+    </a>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+
+  <!-- ADVENTURES -->
+  <div class="section">
+    <div class="section-label">Adventures</div>
+    <div class="card-grid">
+      <a class="card" href="/hikes">
+        <div class="card-icon ic-green">🗺️</div>
+        <div class="card-body">
+          <div class="card-title">Interactive Hike Map</div>
+          <div class="card-desc">93 hikes across the US, Hawaii, and beyond — filterable, searchable, with trail notes</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+      <a class="card" href="https://www.youtube.com/@hikewithjyothiprakash" target="_blank">
+        <div class="card-icon ic-red">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0000"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Hike with Jyothi Prakash</div>
+          <div class="card-desc">Trail vlogs from the Bay Area, National Parks, Hawaii, and India</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- MUSIC -->
+  <div class="section">
+    <div class="section-label">Music</div>
+    <div class="card-grid">
+      <a class="card" href="https://www.youtube.com/@tjyothiprakash" target="_blank">
+        <div class="card-icon ic-red">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff0000"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Song Recordings & Karaoke</div>
+          <div class="card-desc">Covers, karaoke sessions, and music experiments on YouTube</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- WRITING -->
+  <div class="section">
+    <div class="section-label">Writing</div>
+    <div class="writing-grid">
+      <a class="writing-card" href="https://app.notion.com/p/So-long-and-thanks-for-all-the-doses-Dose-pocalypse-and-a-new-hope-3223ae74effc80fc8dd2f953f70676be?v=6ed3ae74effc83cd8dd808531d922ab6&source=copy_link" target="_blank">
+        <div class="writing-tag">Humour · Food</div>
+        <div class="writing-title">So Long and Thanks for All the Doses: Dose-pocalypse and a New Hope!</div>
+        <div class="writing-desc">A fond, funny farewell to the legendary South Indian breakfast staple — and what comes next.</div>
+      </a>
+      <a class="writing-card" href="https://jptrish.github.io/extra-time-world-cup/" target="_blank">
+        <div class="writing-tag">Sports · Nostalgia</div>
+        <div class="writing-title">Extra Time: A World Cup Story</div>
+        <div class="writing-desc">On soccer, memory, and the fleeting magic of a tournament that comes around every four years.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PATENTS -->
+  <div class="section">
+    <div class="section-label">Patents</div>
+    <div class="writing-grid">
+      <a class="writing-card" href="https://patents.google.com/patent/US11256770" target="_blank">
+        <div class="writing-tag">Patent · GoDaddy · 2022 &nbsp;·&nbsp; US 11,256,770</div>
+        <div class="writing-title">Data-Driven Online Business Name Generator</div>
+        <div class="writing-desc">A system and method for generating business name suggestions using data-driven signals — helping entrepreneurs find the right name at the moment of idea.</div>
+      </a>
+      <a class="writing-card" href="https://patents.google.com/patent/US8134726" target="_blank">
+        <div class="writing-tag">Patent · Hewlett-Packard · 2012 &nbsp;·&nbsp; US 8,134,726</div>
+        <div class="writing-title">Bi-Directional Communication Between Printer and Client</div>
+        <div class="writing-desc">A method enabling two-way communication in point-and-print architectures between printers and client devices — from early systems programming days at HP.</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- WORK -->
+  <div class="section">
+    <div class="section-label">Work</div>
+    <div class="card-grid">
+      <a class="card" href="https://linkedin.com/in/jyothiprakash" target="_blank">
+        <div class="card-icon ic-blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.37V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.59 0 4.26 2.37 4.26 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM3.56 20.45h3.55V9H3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="card-title">LinkedIn Profile</div>
+          <div class="card-desc">Director of Product Management · Domain Search · GoDaddy</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  © 2026 Jyothi Prakash · jyothiprakash.com
+</footer>
+
+</body>
+</html>
